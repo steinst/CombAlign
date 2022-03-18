@@ -61,26 +61,30 @@ trainNumLines = 0
 #sym_types = ['grow-diag', 'grow-diag-final', 'grow-diag-final-and', 'intersect', 'union']
 sym_types = ['intersect']
 
+if len(info['training_corpus']) > 0:
+    info['DATA']['trainingcorpus'] = info['training_corpus']
+if len(info['align_file']) > 0:
+    info['DATA']['alignmentset'] = info['align_file']
 
 if info['create_fa_format']:
     print('Creating .fa format files...')
     if info['use_training_corpus']:
-        utilities.txt2fastalign(info['FILE_FOLDERS']['TrainingcorpusTokenizedSentences'], info['training_corpus'], info['FILE_FOLDERS']['FAFormat'])
-    utilities.txt2fastalign(info['FILE_FOLDERS']['ToalignTokenizedSentences'], info['align_file'], info['FILE_FOLDERS']['FAFormat'])
+        utilities.txt2fastalign(info['FILE_FOLDERS']['training'], info['DATA']['trainingcorpus'], info['FILE_FOLDERS']['fa'])
+    utilities.txt2fastalign(info['FILE_FOLDERS']['tokenized'], info['DATA']['alignmentset'], info['FILE_FOLDERS']['fa'])
 
 
 if info['use_training_corpus']:
-    fa2align = utilities.joinFiles(info['FILE_FOLDERS']['FAFormat'] + '/' + info['training_corpus'] + '.fa', info['FILE_FOLDERS']['FAFormat'] + '/' + info['align_file'] + '.fa')
-    srcIn = open(info['FILE_FOLDERS']['FAFormat'] + '/' + info['align_file'] + '.fa', 'r')
+    fa2align = utilities.joinFiles(info['FILE_FOLDERS']['fa'] + '/' + info['DATA']['trainingcorpus'] + '.fa', info['FILE_FOLDERS']['fa'] + '/' + info['align_file'] + '.fa')
+    srcIn = open(info['FILE_FOLDERS']['fa'] + '/' + info['DATA']['alignmentset'] + '.fa', 'r')
     srcLines = srcIn.readlines()
     srcIn.close()
     testNumLines = len(srcLines)
-    trainIn = open(info['FILE_FOLDERS']['FAFormat'] + '/' + info['training_corpus'] + '.fa', 'r')
+    trainIn = open(info['FILE_FOLDERS']['fa'] + '/' + info['DATA']['trainingcorpus'] + '.fa', 'r')
     trainLines = trainIn.readlines()
     trainIn.close()
     trainNumLines = len(trainLines)
 else:
-    fa2align = info['align_file'] + '.fa'
+    fa2align = info['DATA']['alignmentset'] + '.fa'
 
 info['fa2align'] = fa2align
 info['num_test_lines'] = testNumLines
