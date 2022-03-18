@@ -5,6 +5,7 @@ import argparse
 import time
 from itertools import cycle
 from AlignmentTools import Simalign, eflomal, fastalign
+from tools import utilities
 
 spinner = cycle('⠋⠙⠹⠸⠼⠴⠦⠧⠇⠏')
 
@@ -39,7 +40,7 @@ parser.add_argument('--use_training_corpus', default=True)
 info = vars(parser.parse_args())
 
 config = configparser.ConfigParser()
-config.read('config_notest.ini')
+config.read('config.ini')
 
 for section in config.sections():
     info[section] = {}
@@ -63,21 +64,23 @@ sym_types = ['intersect']
 
 if info['create_fa_format']:
     print('Creating .fa format files...')
-    utilities.txt2fastalign(training_tok_folder, training_corpus_name, fa_folder)
+    if info['use_training_corpus']:
+        utilities.txt2fastalign(info['FILE_FOLDERS']['TrainingcorpusTokenizedSentences'], info['training_corpus'], info['FILE_FOLDERS']['FAFormat'])
+    utilities.txt2fastalign(info['FILE_FOLDERS']['ToalignTokenizedSentences'], info['align_file'], info['FILE_FOLDERS']['FAFormat'])
 
 
-if info['training_corpus']:
-    fa2align = utilities.joinFiles(fa_folder + '/' + training_corpus_name + '.fa', fa_folder + '/' + alignment_set_name + '.fa')
-    srcIn = open(fa_folder + '/' + alignment_set_name + '.fa', 'r')
+if info['use_training_corpus']:
+    fa2align = utilities.joinFiles(info['FILE_FOLDERS']['FAFormat'] + '/' + info['training_corpus'] + '.fa', info['FILE_FOLDERS']['FAFormat'] + '/' + info['align_file'] + '.fa')
+    srcIn = open(info['FILE_FOLDERS']['FAFormat'] + '/' + info['align_file'] + '.fa', 'r')
     srcLines = srcIn.readlines()
     srcIn.close()
     testNumLines = len(srcLines)
-    trainIn = open(fa_folder + '/' + training_corpus_name + '.fa', 'r')
+    trainIn = open(info['FILE_FOLDERS']['FAFormat'] + '/' + info['training_corpus'] + '.fa', 'r')
     trainLines = trainIn.readlines()
     trainIn.close()
     trainNumLines = len(trainLines)
 else:
-    fa2align = alignment_set_name + '.fa'
+    fa2align = info['align_file'] + '.fa'
 
 info['fa2align'] = fa2align
 info['num_test_lines'] = testNumLines
@@ -105,6 +108,7 @@ elif info['method'] == 'fastalign':
     alignment_object.align()
 
 elif info['method'] == 'gizapp':
+    pass
 
 
 

@@ -1,3 +1,14 @@
+create a conda environment:
+conda create --name combalign python=3.8 
+
+git clone https://github.com/steinst/CombAlign.git
+cd CombAlign
+
+pip install -r requirements.txt
+bash install_tools.sh
+
+this assumes Boost is installed 
+
 Alignment systems used:
 
 eflomal
