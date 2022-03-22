@@ -187,7 +187,7 @@ class gizapp:
 
         # count training lines
         print('Counting lines')
-        trainNumLines = get_line_count(self.fa_folder + '/' + self.training_corpus_name)
+        trainNumLines = get_line_count(self.fa_folder + '/' + self.training_corpus_name + '.fa')
         print(str(trainNumLines) + ' in training set')
 
         print('Aligning sentence files')
