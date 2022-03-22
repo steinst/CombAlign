@@ -174,9 +174,9 @@ class gizapp:
         gizapp_mkcls = self.gizapp_folder + '/mkcls-v2'
 
         if self.align_file:
-            training_corpus_name = self.alignment_set_name
+            self.training_corpus_name = self.fa2align
             print('Concatenating train and test corpora')
-            lines2align = self.fa_folder + '/' + self.training_corpus_name + '.fa'
+            self.lines2align = self.fa_folder + '/' + self.training_corpus_name + '.fa'
 
         if self.input_fa:
             print('Converting from fa format')
