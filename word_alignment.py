@@ -83,6 +83,7 @@ if info['use_training_corpus']:
     trainLines = trainIn.readlines()
     trainIn.close()
     trainNumLines = len(trainLines)
+    print(fa2align)
 else:
     fa2align = info['DATA']['alignmentset'] + '.fa'
 
