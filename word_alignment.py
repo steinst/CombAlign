@@ -4,7 +4,7 @@ import configparser
 import argparse
 import time
 from itertools import cycle
-from AlignmentTools import Simalign, eflomal, fastalign
+from AlignmentTools import Simalign, eflomal, fastalign, mgiza, gizapp
 from tools import utilities
 
 spinner = cycle('⠋⠙⠹⠸⠼⠴⠦⠧⠇⠏')
@@ -14,7 +14,7 @@ spinner = cycle('⠋⠙⠹⠸⠼⠴⠦⠧⠇⠏')
 
 parser = argparse.ArgumentParser()
 # vantar awesome align
-parser.add_argument('--method', '-m', help='test corpus', default='eflomal', choices=['eflomal', 'fastalign', 'simalign', 'gizapp', 'fasttext'])
+parser.add_argument('--method', '-m', help='test corpus', default='eflomal', choices=['eflomal', 'fastalign', 'simalign', 'gizapp', 'awesome', 'mgiza'])
 parser.add_argument('--create-fa-format', '-fa', help='create fa-format files from training and testing files', action="store_true")
 parser.add_argument('--generate-priors', '-gp', help='Generate priors (train eflomal)', action="store_true")
 parser.add_argument('--training-corpus', '-tr', help='training corpus')
@@ -111,9 +111,13 @@ elif info['method'] == 'fastalign':
     alignment_object = fastalign(info)
     alignment_object.align()
 
-elif info['method'] == 'gizapp':
-    pass
+elif info['method'] == 'mgiza':
+    alignment_object = mgiza(info)
+    alignment_object.align()
 
+elif info['method'] == 'gizapp':
+    alignment_object = gizapp(info)
+    alignment_object.align()
 
 
 #total_time = str(time.time() - start_time)

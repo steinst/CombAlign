@@ -116,6 +116,41 @@ class fastalign:
         self.alignment_files.append(rev_file)
 
 
+class mgiza:
+    def __init__(self, info_dict):
+        self.generate_priors = info_dict['generate_priors']
+        self.gizapp_folder = info_dict['TOOLS']['gizapp']
+        self.fastalign_folder = info_dict['TOOLS']['fastalign']
+        self.fa_folder = info_dict['FILE_FOLDERS']['fa']
+        self.training_corpus_name = info_dict['DATA']['trainingcorpus']
+        self.fa2align = info_dict['fa2align']
+        self.alignment_set_name = info_dict['DATA']['alignmentset']
+        self.output_folder_alignments = info_dict['FILE_FOLDERS']['output']
+        self.sym_types = info_dict['matching_methods']
+        self.training_corpus = info_dict['training_corpus']
+        self.testNumLines = info_dict['num_test_lines']
+        self.align_file = info_dict['align_file']
+        self.input_fa = info_dict['input_fa']
+        self.alignment_files = []
+
+    def align(self):
+        gizapp_utils = self.gizapp_folder + '/GIZA++-v2'
+        gizapp_mkcls = self.gizapp_folder + '/mkcls-v2'
+
+        if self.align_file:
+            training_corpus_name = self.alignment_set_name
+            print('Concatenating train and test corpora')
+            lines2align = self.fa_folder + '/' + self.training_corpus_name + '.fa'
+
+        if self.input_fa:
+            import format_fa2giza
+            print('Converting from fa format')
+            format_fa2giza.convert(self.fa_folder, self.training_corpus_name.strip('.fa'))
+
+        src_file = self.training_corpus_name + '.src'
+        trg_file = self.training_corpus_name + '.trg'
+
+
 class gizapp:
     def __init__(self, info_dict):
         self.generate_priors = info_dict['generate_priors']
