@@ -178,9 +178,8 @@ class gizapp:
             lines2align = self.fa_folder + '/' + self.training_corpus_name + '.fa'
 
         if self.input_fa:
-            import format_fa2giza
             print('Converting from fa format')
-            format_fa2giza.convert(self.fa_folder, self.training_corpus_name.strip('.fa'))
+            utilities.format_fa2giza(self.fa_folder, self.training_corpus_name.strip('.fa'))
 
         src_file = self.training_corpus_name + '.src'
         trg_file = self.training_corpus_name + '.trg'

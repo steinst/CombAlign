@@ -311,3 +311,22 @@ def format_giza2pharaoh_notest(output_folder, corpus_name):
         while ctr < int(line_number):
             ctr += 1
             fo.write(pharaohDict[str(ctr)] + '\n')
+
+def format_fa2giza(fa_folder, filename):
+    inFile = open(fa_folder + '/' + filename + '.fa', 'r')
+    inLines = inFile.readlines()
+    inFile.close()
+
+    outFile_src = fa_folder + '/' + filename + '.src'
+    outFile_trg = fa_folder + '/' + filename + '.trg'
+
+    with open(outFile_src, 'w') as out_s, open(outFile_trg, 'w') as out_t:
+        for line in inLines:
+            try:
+                currLine = line.split('|||')
+                srcLine = currLine[0].rstrip().strip() + '\n'
+                trgLine = currLine[1].rstrip().strip() + '\n'
+                out_s.write(srcLine)
+                out_t.write(trgLine)
+            except:
+                pass
