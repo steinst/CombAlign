@@ -174,13 +174,13 @@ class gizapp:
         gizapp_mkcls = self.gizapp_folder + '/mkcls-v2'
 
         if self.align_file:
-            self.training_corpus_name = self.fa2align
+            self.training_corpus_name = self.fa2align.strip('.fa')
             print('Concatenating train and test corpora')
             self.lines2align = self.fa_folder + '/' + self.training_corpus_name
 
         if self.input_fa:
             print('Converting from fa format')
-            utilities.format_fa2giza(self.fa_folder, self.training_corpus_name.strip('.fa'))
+            utilities.format_fa2giza(self.fa_folder, self.training_corpus_name)
 
         src_file = self.training_corpus_name + '.src'
         trg_file = self.training_corpus_name + '.trg'
@@ -205,11 +205,11 @@ class gizapp:
         # býr til file.cooc
 
         print('running giza++')
-        utilities.align_gizapp(gizapp_utils, self.fa_folder, self.training_corpus_name.strip('.fa'), self.output_folder_alignments)
+        utilities.align_gizapp(gizapp_utils, self.fa_folder, self.training_corpus_name, self.output_folder_alignments)
 
         # formatera og decouple
         print('formatting output')
-        self.alignment_files.append(utilities.format_giza2pharaoh_notest(self.output_folder_alignments, self.training_corpus_name.strip('.fa')))
+        self.alignment_files.append(utilities.format_giza2pharaoh_notest(self.output_folder_alignments, self.training_corpus_name))
 
 
 
