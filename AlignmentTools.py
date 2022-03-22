@@ -166,6 +166,7 @@ class gizapp:
         self.testNumLines = info_dict['num_test_lines']
         self.align_file = info_dict['align_file']
         self.input_fa = info_dict['input_fa']
+        self.n_value = info_dict['n_value']
         self.alignment_files = []
 
     def align(self):
@@ -190,17 +191,17 @@ class gizapp:
         print(str(trainNumLines) + ' in training set')
 
         print('Aligning sentence files')
-        utilities.align_gizapp_p2s(gizapp_utils, self.fa_folder, self.corpus_file)
+        utilities.align_gizapp_p2s(gizapp_utils, self.fa_folder, self.training_corpus_name)
         # býr til file1_file2.snt, file2_file1.snt, file1.vcb, file2.vcb
 
         print('mkcls source')
-        #utilities.align_gizapp_mkcls(gizapp_mkcls, args.n_value, fa_folder, corpus_file, 'src')
+        utilities.align_gizapp_mkcls(gizapp_mkcls, self.n_value, self.fa_folder, self.training_corpus_name, 'src')
         print('mkcls target')
-        #utilities.align_gizapp_mkcls(gizapp_mkcls, args.n_value, fa_folder, corpus_file, 'trg')
+        utilities.align_gizapp_mkcls(gizapp_mkcls, self.n_value, self.fa_folder, self.training_corpus_name, 'trg')
         # býr til file1.vcb.classes, file1.vcb.classes.cats
 
         print('creating coordination file')
-        #utilities.align_gizapp_cooc(gizapp_utils, fa_folder, corpus_file)
+        utilities.align_gizapp_cooc(gizapp_utils, self.fa_folder, self.training_corpus_name)
         # býr til file.cooc
 
         print('running giza++')
