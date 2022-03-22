@@ -34,8 +34,8 @@ parser.add_argument("--output", type=str, default="simalign", help="output align
 # GIZA++
 parser.add_argument('--input-fa', '-ifa', help='read in fa format', action="store_true")
 parser.add_argument('--create-snt-format', '-p2s', help='create correct sentence format for giza', default=True)
-parser.add_argument('--n-value', '-n', help='n-value for mkcls')
-parser.add_argument('--use_training_corpus', default=True)
+parser.add_argument('--n-value', '-n', default=10, help='n-value for mkcls')
+parser.add_argument('--use_training_corpus', action="store_true")
 
 info = vars(parser.parse_args())
 
@@ -61,8 +61,12 @@ trainNumLines = 0
 #sym_types = ['grow-diag', 'grow-diag-final', 'grow-diag-final-and', 'intersect', 'union']
 sym_types = ['intersect']
 
-if len(info['training_corpus']) > 0:
-    info['DATA']['trainingcorpus'] = info['training_corpus']
+try:
+    if len(info['training_corpus']) > 0:
+        info['DATA']['trainingcorpus'] = info['training_corpus']
+except:
+    pass
+
 if len(info['align_file']) > 0:
     info['DATA']['alignmentset'] = info['align_file']
 
@@ -83,7 +87,6 @@ if info['use_training_corpus']:
     trainLines = trainIn.readlines()
     trainIn.close()
     trainNumLines = len(trainLines)
-    print(fa2align)
 else:
     fa2align = info['DATA']['alignmentset'] + '.fa'
 
