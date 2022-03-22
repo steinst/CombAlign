@@ -176,7 +176,7 @@ class gizapp:
         if self.align_file:
             self.training_corpus_name = self.fa2align
             print('Concatenating train and test corpora')
-            self.lines2align = self.fa_folder + '/' + self.training_corpus_name + '.fa'
+            self.lines2align = self.fa_folder + '/' + self.training_corpus_name
 
         if self.input_fa:
             print('Converting from fa format')
@@ -187,7 +187,7 @@ class gizapp:
 
         # count training lines
         print('Counting lines')
-        trainNumLines = get_line_count(self.fa_folder + '/' + self.training_corpus_name + '.fa')
+        trainNumLines = get_line_count(self.fa_folder + '/' + self.training_corpus_name)
         print(str(trainNumLines) + ' in training set')
 
         print('Aligning sentence files')
