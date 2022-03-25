@@ -200,10 +200,8 @@ def decouple_testset(outputFolder, inFile, numLines):
     process = subprocess.run(bashCommand, shell=True)
 
 
-def symmetrize_alignments(fastalign_folder, alignment_folder, set_name, fwd_file, rev_file, sym_type, model=''):
-    print(fwd_file)
+def symmetrize_alignments(fastalign_folder, fwd_file, rev_file, sym_type):
     outfile = fwd_file.rsplit('.', 1)[0]
-    print(outfile)
     bashCommand = fastalign_folder + '/atools -i ' + fwd_file + ' -j ' + rev_file + ' -c ' + sym_type + ' > ' + outfile + '.' + sym_type
     process = subprocess.run(bashCommand, shell=True)
     return outfile + '.' + sym_type

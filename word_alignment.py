@@ -59,7 +59,7 @@ info['start_time'] = time.time()
 testNumLines = 0
 trainNumLines = 0
 #sym_types = ['grow-diag', 'grow-diag-final', 'grow-diag-final-and', 'intersect', 'union']
-sym_types = ['intersect']
+info['sym_types'] = ['intersect']
 
 try:
     if len(info['training_corpus']) > 0:

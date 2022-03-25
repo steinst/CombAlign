@@ -61,7 +61,7 @@ class eflomal:
         self.training_corpus_name = info_dict['DATA']['trainingcorpus']
         self.alignment_set_name = info_dict['DATA']['alignmentset']
         self.output_folder_alignments = info_dict['FILE_FOLDERS']['output']
-        self.sym_types = info_dict['matching_methods']
+        self.sym_types = info_dict['sym_types']
         self.alignment_files = []
 
     def align(self):
@@ -95,7 +95,7 @@ class fastalign:
         self.fa2align = info_dict['fa2align']
         self.alignment_set_name = info_dict['DATA']['alignmentset']
         self.output_folder_alignments = info_dict['FILE_FOLDERS']['output']
-        self.sym_types = info_dict['matching_methods']
+        self.sym_types = info_dict['sym_types']
         self.training_corpus = info_dict['training_corpus']
         self.testNumLines = info_dict['num_test_lines']
         self.alignment_files = []
@@ -111,7 +111,7 @@ class fastalign:
             utilities.decouple_testset(self.output_folder_alignments, rev_file, self.testNumLines)
 
         for sym_type in self.sym_types:
-            self.alignment_files.append(utilities.symmetrize_alignments(self.fastalign_folder, self.output_folder_alignments, self.alignment_set_name, fwd_file, rev_file, sym_type, 'fastalign'))
+            self.alignment_files.append(utilities.symmetrize_alignments(self.fastalign_folder, fwd_file, rev_file, sym_type))
         self.alignment_files.append(fwd_file)
         self.alignment_files.append(rev_file)
 
@@ -126,7 +126,7 @@ class mgiza:
         self.fa2align = info_dict['fa2align']
         self.alignment_set_name = info_dict['DATA']['alignmentset']
         self.output_folder_alignments = info_dict['FILE_FOLDERS']['output']
-        self.sym_types = info_dict['matching_methods']
+        self.sym_types = info_dict['sym_types']
         self.training_corpus = info_dict['training_corpus']
         self.testNumLines = info_dict['num_test_lines']
         self.align_file = info_dict['align_file']
@@ -161,7 +161,7 @@ class gizapp:
         self.fa2align = info_dict['fa2align']
         self.alignment_set_name = info_dict['DATA']['alignmentset']
         self.output_folder_alignments = info_dict['FILE_FOLDERS']['output']
-        self.sym_types = info_dict['matching_methods']
+        self.sym_types = info_dict['sym_types']
         self.training_corpus = info_dict['training_corpus']
         self.testNumLines = info_dict['num_test_lines']
         self.align_file = info_dict['align_file']
