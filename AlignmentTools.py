@@ -194,7 +194,7 @@ class gizapp:
         # býr til file1_file2.snt, file2_file1.snt, file1.vcb, file2.vcb
 
         print('mkcls source')
-        utilities.align_gizapp_mkcls(gizapp_mkcls, self.n_value, self.fa_folder, self.training_corpus_name, 'src')
+        #utilities.align_gizapp_mkcls(gizapp_mkcls, self.n_value, self.fa_folder, self.training_corpus_name, 'src')
         print('mkcls target')
         utilities.align_gizapp_mkcls(gizapp_mkcls, self.n_value, self.fa_folder, self.training_corpus_name, 'trg')
         # býr til file1.vcb.classes, file1.vcb.classes.cats

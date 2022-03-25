@@ -100,7 +100,7 @@ def align_gizapp_cooc(gizapp_utils, fa_folder, corpus_file):
 
 
 def align_gizapp(gizapp_utils, fa_folder, corpus_file, output_folder_alignments):
-    gizappCommand = gizapp_utils + '/GIZA++ -S '+ fa_folder + '/' + corpus_file + '.src.vcb -T ' + fa_folder + '/' + corpus_file + '.trg.vcb -C ' + fa_folder + '/' + corpus_file + '.src_' + corpus_file + '.trg.snt -o ' + corpus_file + ' -outputpath ' + output_folder_alignments + ' -CoocurrenceFile ' + corpus_file + '.cooc'
+    gizappCommand = gizapp_utils + '/GIZA++ -S '+ fa_folder + '/' + corpus_file + '.src.vcb -T ' + fa_folder + '/' + corpus_file + '.trg.vcb -C ' + fa_folder + '/' + corpus_file + '.src_' + corpus_file + '.trg.snt -o ' + corpus_file + ' -outputpath ' + output_folder_alignments + ' -CoocurrenceFile ' + fa_folder + '/' + corpus_file + '.cooc'
     gizappCommand = gizappCommand.replace('//', '/')
     process = subprocess.run(gizappCommand, shell=True)
 
