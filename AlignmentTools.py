@@ -72,11 +72,11 @@ class eflomal:
             # symmetrize and make priors
             for sym_type in self.sym_types:
                 print('Symmetrizing...')
-                utilities.align_eflomal_syms(self.fastalign_folder, self.eflomal_folder, self.fa_folder, self.training_corpus_name, self.output_folder_alignments, self.sym_type)
+                utilities.align_eflomal_syms(self.fastalign_folder, self.eflomal_folder, self.fa_folder, self.training_corpus_name, self.output_folder_alignments, sym_type)
 
         for sym_type in self.sym_types + ['fr']:
             print('Aligning ', sym_type)
-            utilities.align_eflomal_tests(self.fastalign_folder, self.eflomal_folder, self.fa_folder, self.sym_type, self.output_folder_alignments, self.training_corpus_name, self.alignment_set_name)
+            utilities.align_eflomal_tests(self.fastalign_folder, self.eflomal_folder, self.fa_folder, sym_type, self.output_folder_alignments, self.training_corpus_name, self.alignment_set_name)
             sym_eflomal = self.sym_types + ['fwd', 'rev']
 
             for i in sym_eflomal:
