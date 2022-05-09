@@ -1,3 +1,4 @@
 simalign==0.3
 awesome-align==0.1.7
 sacremoses~=0.0.47
+Cython==0.29.28

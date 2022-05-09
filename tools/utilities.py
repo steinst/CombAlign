@@ -48,6 +48,15 @@ def txt2fastalign(tok_folder, parallel_filename, fa_folder):
             ctr += 1
 
 
+def simalign2pharaoh(simalign_line):
+    alignments = simalign_line.strip().split('), (')
+    outline = ''
+    for a in alignments:
+        b = a.replace('[', '').replace(']', '').replace('(', '').replace(')', '').replace(', ', '-')
+        outline += b + ' '
+    return outline
+
+
 def joinFiles(first_file, second_file):
     first_file_folder = first_file.rsplit('/', 1)[0]
     first_file_name = first_file.rsplit('/', 1)[1].rsplit('.', 1)[0]
@@ -87,6 +96,12 @@ def align_gizapp_p2s(gizapp_folder, fa_folder, corpus_file):
     process = subprocess.run(p2sCommand, shell=True)
 
 
+def align_awesome(file_in, out_file, model):
+    awesomeCommand = 'CUDA_VISIBLE_DEVICES=0 awesome-align --output_file=' + out_file + ' --model_name_or_path=' + model + ' --data_file=' + file_in + " --extraction 'softmax' --batch_size 32"
+    awesomeCommand = awesomeCommand.replace('//', '/')
+    process = subprocess.run(awesomeCommand, shell=True)
+
+
 def align_gizapp_mkcls(gizapp_mkcls, n_value, fa_folder, corpus_file, direction):
     mkclsCommand = gizapp_mkcls + '/mkcls -n' + str(n_value) + ' -p' + fa_folder + '/' + corpus_file + '.' + direction + ' -V' + fa_folder + '/' + corpus_file + '.' + direction + '.vcb.classes'
     mkclsCommand = mkclsCommand.replace('//', '/')
@@ -117,14 +132,50 @@ def align_mgiza_mkcls(mgiza_folder, n_value, fa_folder, corpus_file, direction):
     process = subprocess.run(mkclsCommand, shell=True)
 
 
-def align_mgiza_cooc(mgiza_folder, fa_folder, output_folder_alignments, corpus_file):
-    coocCommand = mgiza_folder + '/snt2cooc' + ' ' + output_folder_alignments + '/' + corpus_file + '.cooc ' + fa_folder + '/' + corpus_file + '.src.vcb ' + fa_folder + '/' + corpus_file + '.trg.vcb '+ fa_folder + '/' + corpus_file + '.src_' + corpus_file + '.trg.snt'
+def align_mgiza_cooc(mgiza_folder, fa_folder, corpus_file):
+    coocCommand = mgiza_folder + '/snt2cooc' + ' ' + fa_folder + '/' + corpus_file + '.cooc ' + fa_folder + '/' + corpus_file + '.src.vcb ' + fa_folder + '/' + corpus_file + '.trg.vcb '+ fa_folder + '/' + corpus_file + '.src_' + corpus_file + '.trg.snt'
     coocCommand = coocCommand.replace('//', '/')
     process = subprocess.run(coocCommand, shell=True)
 
 
 def align_mgiza(mgiza_folder, fa_folder, corpus_file, output_folder_alignments, ncpus):
-    gizappCommand = mgiza_folder + '/mgiza -s '+ fa_folder + '/' + corpus_file + '.src.vcb -t ' + fa_folder + '/' + corpus_file + '.trg.vcb -c ' + fa_folder + '/' + corpus_file + '.src_' + corpus_file + '.trg.snt -o ' + corpus_file + ' -outputpath ' + output_folder_alignments + ' -coocurrenceFile ' + corpus_file + '.cooc -ncpus ' + str(ncpus)
+    gizappCommand = mgiza_folder + '/mgiza -s '+ fa_folder + '/' + corpus_file + '.src.vcb -t ' + fa_folder + '/' + corpus_file + '.trg.vcb -c ' + fa_folder + '/' + corpus_file + '.src_' + corpus_file + '.trg.snt -o ' + corpus_file + ' -outputpath ' + output_folder_alignments + ' -coocurrenceFile ' + fa_folder + '/' + corpus_file + '.cooc -ncpus ' + str(ncpus)
+    gizappCommand = gizappCommand.replace('//', '/')
+    process = subprocess.run(gizappCommand, shell=True)
+
+
+def align_mgiza_merge(mgiza_folder, output_folder_alignments, corpus_file):
+    gizappCommand = mgiza_folder + '/scripts/merge_alignment.py `ls ' + output_folder_alignments + '/' + corpus_file + '.A3.final.part*` > '  + output_folder_alignments + '/' + corpus_file + '.A3.final'
+    gizappCommand = gizappCommand.replace('//', '/')
+    process = subprocess.run(gizappCommand, shell=True)
+
+
+def align_mgiza_clean(output_folder_alignments, corpus_file):
+    gizappCommand = 'rm ' + output_folder_alignments + '/' + corpus_file + '.A3.final.part*'
+    gizappCommand = gizappCommand.replace('//', '/')
+    process = subprocess.run(gizappCommand, shell=True)
+
+    gizappCommand = 'rm ' + output_folder_alignments + '/' + corpus_file + '*.final'
+    gizappCommand = gizappCommand.replace('//', '/')
+    process = subprocess.run(gizappCommand, shell=True)
+
+    gizappCommand = 'rm ' + output_folder_alignments + '/' + corpus_file + '*.perp'
+    gizappCommand = gizappCommand.replace('//', '/')
+    process = subprocess.run(gizappCommand, shell=True)
+
+    gizappCommand = 'rm ' + output_folder_alignments + '/' + corpus_file + '*.vcb'
+    gizappCommand = gizappCommand.replace('//', '/')
+    process = subprocess.run(gizappCommand, shell=True)
+
+    gizappCommand = 'rm ' + output_folder_alignments + '/' + corpus_file + '*.config'
+    gizappCommand = gizappCommand.replace('//', '/')
+    process = subprocess.run(gizappCommand, shell=True)
+
+    gizappCommand = 'rm ' + output_folder_alignments + '/' + corpus_file + '.cooc'
+    gizappCommand = gizappCommand.replace('//', '/')
+    process = subprocess.run(gizappCommand, shell=True)
+
+    gizappCommand = 'rm ' + output_folder_alignments + '/' + corpus_file + '*cfg'
     gizappCommand = gizappCommand.replace('//', '/')
     process = subprocess.run(gizappCommand, shell=True)
 

@@ -13,6 +13,7 @@ Alignment systems used:
 
 eflomal
 
+bæta við tokenize
 
 
 fast-align

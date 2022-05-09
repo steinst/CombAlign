@@ -4,7 +4,7 @@ import configparser
 import argparse
 import time
 from itertools import cycle
-from AlignmentTools import Simalign, eflomal, fastalign, mgiza, gizapp
+from AlignmentTools import Simalign, eflomal, fastalign, mgiza, gizapp, awesome
 from tools import utilities
 
 spinner = cycle('⠋⠙⠹⠸⠼⠴⠦⠧⠇⠏')
@@ -67,7 +67,7 @@ try:
 except:
     pass
 
-if len(info['align_file']) > 0:
+if info['align_file']:
     info['DATA']['alignmentset'] = info['align_file']
 
 if info['create_fa_format']:
@@ -123,6 +123,9 @@ elif info['method'] == 'gizapp':
     alignment_object = gizapp(info)
     alignment_object.align()
 
+elif info['method'] == 'awesome':
+    alignment_object = awesome(info)
+    alignment_object.align()
 
 #total_time = str(time.time() - start_time)
 #print(total_time)
