@@ -1,5 +1,6 @@
 create a conda environment:
-conda create --name combalign python=3.8 
+conda create --name combalign python=3.8
+conda activate combalign
 
 git clone https://github.com/steinst/CombAlign.git
 cd CombAlign
