@@ -33,6 +33,16 @@ def read_lines(path):
     return out
 
 
+def read_raw(path):
+    """→ (ids, texts): per line the id (None if the line has no "<id>\\t" prefix) and the sentence as it stands."""
+    ids, texts = [], []
+    for l in open(path, encoding="utf-8"):
+        sid, tab, text = l.rstrip("\n").partition("\t") if "\t" in l else (None, "", l.rstrip("\n"))
+        ids.append(sid)
+        texts.append(text)
+    return ids, texts
+
+
 def read_gold(prefix):
     """prefix e.g. data/gold/test → (src tokens, trg tokens, [(sure, possible)])."""
     src = read_lines(prefix + "_sentences.en")
@@ -101,7 +111,7 @@ def symmetrize(fwd, rev, how):
 def vote(alignment_lists, k, return_counts=False):
     """alignment_lists: [aligner][sentence] → set; keep edges proposed by ≥ k aligners.
     return_counts=True → per sentence {edge: number of aligners that proposed it} for the kept edges (a dict, so
-    `set(d)` is the plain result); default → per sentence a set, as before."""
+    `set(d)` is the plain result); default → per sentence a set."""
     out = []
     for sets in zip(*alignment_lists):
         cnt = {}

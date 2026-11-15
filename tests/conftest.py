@@ -22,7 +22,7 @@ GROW_MEMBERS = ["eflomal_gdfa", "fast_align_gdfa", "nllb_itermax", "labse_iterma
 RECIPES = {"emb": (["labse8", "labse6k09", "nllb12"], 2),
            "fast": (["labse6k09", "nllb12", "eflomal"], 2),
            "full": (FULL, 3)}
-# reference numbers (public data only): split → F1 / AER, to the 3 decimals the paper tables use
+# reference numbers: split → F1 / AER, to the 3 decimals the paper tables use
 REF = {"emb": {"dev": (0.958, 0.043), "test": (0.947, 0.054)},
        "fast": {"dev": (0.966, 0.035), "test": (0.954, 0.046)},
        "full": {"dev": (0.967, 0.036), "test": (0.960, 0.043)}}

@@ -2,7 +2,7 @@
 # Builds the statistical aligners into ./tools and installs the Python dependencies into the active environment.
 #   fast_align   https://github.com/clab/fast_align   (needs cmake, libgoogle-perftools-dev, libsparsehash-dev)
 #   GIZA++       https://github.com/moses-smt/giza-pp
-#   eflomal, awesome-align, transformers, torch: pip (requirements.txt)
+#   eflomal, transformers, torch, sacremoses, tokenizer (Miðeind, for --tokenize): pip (requirements.txt)
 set -e
 cd "$(dirname "$0")"
 pip install -r requirements.txt

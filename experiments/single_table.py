@@ -9,18 +9,13 @@ R = f"{ROOT}/results"
 G = {s: core.read_gold(f"{ROOT}/data/gold/{s}")[2] for s in ("dev", "test")}
 FAM = [("GIZA++ (ParIce)", "giza."), ("fast_align", "fast_align."), ("eflomal", "eflomal."),
        ("SimAlign mBERT", "mbert."), ("SimAlign XLM-R base", "xlmr."), ("XLM-R large", "xlmrL."),
-       ("multilingual-e5", "e5."), ("LaBSE (vanilla)", "labse"), ("NLLB-600M encoder (TransAlign)", "nllb"),
-       ("awesome-align mBERT fine-tuned", "mbert_ft."), ("awesome-align LaBSE fine-tuned (AccAlign-style)", "labse_ft."),
+       ("multilingual-e5", "e5."), ("LaBSE", "labse"), ("NLLB-600M encoder (TransAlign)", "nllb"),
        ("grow ensemble (ours)", "grow.")]
 L = ["# Single aligners on the en-is gold set (configuration chosen on dev, then scored on test)", "",
      "| aligner | chosen configuration | dev F1 | test P | test R | test F1 | test AER |", "|---|---|---|---|---|---|---|"]
 for lab, pre in FAM:
     names = [os.path.basename(p)[4:-8] for p in glob.glob(f"{R}/predictions/dev.{pre}*.pharaoh")]
-    names = [n for n in names if not n.startswith("grow.") or "public" in n or pre == "grow."]
-    if pre == "labse":
-        names = [n for n in names if not n.startswith("labse_ft")]
-    if pre == "mbert.":
-        names = [n for n in names if not n.startswith("mbert_ft")]
+    names = [n for n in names if not n.startswith("grow.") or pre == "grow."]
     names = [n for n in names if os.path.exists(f"{R}/predictions/test.{n}.pharaoh")]
     if not names:
         continue

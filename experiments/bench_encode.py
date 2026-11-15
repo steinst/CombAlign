@@ -33,5 +33,7 @@ if __name__ == "__main__":
     if dev.startswith("cuda"):
         E.torch.cuda.synchronize()
     dt = time.time() - t
+    mem = f", peak GPU memory {E.torch.cuda.max_memory_allocated() / 2 ** 30:.1f} GB" if dev.startswith("cuda") else \
+        f", {E.torch.get_num_threads()} threads"
     print(f"{model} layers {layers} {dev} batch {bs} {'fp32' if not E.fp16 else 'fp16'}: {len(sents)} sentences in {dt:.1f}s "
-          f"= {len(sents) / dt:.0f} sent/s ({len(layers)} layers from one pass)")
+          f"= {len(sents) / dt:.0f} sent/s ({len(layers)} layers from one pass{mem})")

@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """Ensemble + grow: seed = vote ≥ k_seed over members, candidates = vote ≥ k_cand (or union of the
-statistical gdfa outputs) → core.grow. Members = the dev-chosen top 7 (public data only) + phrase-capable aligners.
+statistical gdfa outputs) → core.grow. Members = the dev-chosen top 7 + phrase-capable aligners.
 Writes predictions {split}.grow.{label}.pharaoh; then run mwe_eval.py."""
 import os, sys
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))

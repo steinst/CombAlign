@@ -26,7 +26,7 @@ MEMBERS = {
 }
 
 # members: the voters; k: votes needed. grow: seed = vote ≥ seed_k over the members, candidates = links proposed by
-# ≥ cand_k of the grow members, final-and off. full's grow is the paper experiment's; emb's and fast's were chosen on dev.
+# ≥ cand_k of the grow members, final-and off. all grow settings were chosen on dev.
 RECIPES = {
     "emb": dict(members=["labse8", "labse6k09", "nllb12"], k=2, needs_corpus=False,
                 grow=dict(seed_k=2, cand_k=3, members=["labse_itermax", "nllb_itermax", "nllb_softmax"])),

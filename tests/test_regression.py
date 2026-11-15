@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """Gold-set regression checks on the frozen predictions (tests/fixtures). Fast: vote/grow/evaluate only, no models.
-Skipped without data/gold. Later build steps must leave these passing unchanged."""
+Skipped without data/gold."""
 import pytest
 
 from combalign import core
@@ -45,7 +45,7 @@ def test_vote_count_is_a_confidence_score(gold):
             tot[c] += 1
             hit[c] += e in (S | P)
     prec = [hit[c] / tot[c] for c in range(1, 8)]
-    for got, want in zip(prec, [0.22, 0.44, 0.68, 0.75, 0.91, 0.97, 0.996]):   # the plan's table, 2 decimals
+    for got, want in zip(prec, [0.22, 0.44, 0.68, 0.75, 0.91, 0.97, 0.996]):   # README table, 2 decimals
         assert abs(got - want) < 0.006
     assert prec == sorted(prec)                                    # monotone: more votes, higher precision
 

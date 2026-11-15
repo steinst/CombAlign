@@ -165,3 +165,47 @@ def test_emb_recipe_on_the_full_gold_sets_reproduces_the_reference(tmp_path, spl
     assert out == core.vote([fixture(split, m) for m in REF_RECIPES["emb"][0]], 2)
     r = core.evaluate(out, core.read_gold(f"{GOLD}/{split}")[2])
     assert (r["F1"], r["AER"]) == {"dev": (0.958, 0.043), "test": (0.947, 0.054)}[split]
+
+
+# ---- robustness: empty lines, other languages, cache keys ----
+
+def test_an_empty_line_gives_an_empty_alignment(sample, tmp_path):
+    for n in ("s", "t"):
+        lines = (sample / n).read_text(encoding="utf-8").splitlines()[:3]
+        (tmp_path / n).write_text("\n".join([lines[0], "", lines[2]]) + "\n", encoding="utf-8")
+    cli.main(["align", "--recipe", "emb", "--grow", "--device", "cpu", "--src", str(tmp_path / "s"), "--trg", str(tmp_path / "t"),
+              "-o", str(tmp_path / "o")])
+    out = core.read_pharaoh(tmp_path / "o")
+    assert len(out) == 3 and out[0] and not out[1] and out[2]
+
+
+def test_statistical_aligners_never_link_the_placeholder_of_an_empty_line():
+    from combalign import external
+    als = [{(0, 0)}, {(0, 0), (1, 1)}, {(0, 0)}, {(0, 1), (2, 0)}]           # 2 training lines + 2 lines to align
+    assert external._last(als, [[], ["a", "b", "c"]], [[], ["x", "y"]]) == [set(), {(0, 1), (2, 0)}]
+    assert external._last(als, [], []) == []
+
+
+def test_nllb_language_codes():
+    from combalign import simalign
+    assert simalign.nllb_code("is") == "isl_Latn" and simalign.nllb_code("de") == "deu_Latn"
+    assert simalign.nllb_code("kal_Latn") == "kal_Latn"                    # an NLLB code is passed through
+    with pytest.raises(SystemExit) as e:
+        simalign.nllb_code("xx")
+    assert "NLLB-200 code" in str(e.value)
+    try:
+        from transformers import AutoTokenizer
+        vocab = AutoTokenizer.from_pretrained(simalign.MODELS["nllb"][0]).get_vocab()
+    except Exception as e:                                                  # model not cached locally
+        pytest.skip(f"NLLB tokenizer unavailable: {e}")
+    assert [c for c in simalign.NLLB_LANG.values() if c not in vocab] == []
+
+
+def test_cache_key_precision_affects_encoder_members_only(tmp_path):
+    from combalign import pipeline
+    base = {"src": "a", "trg": "b", "src_lang": "en", "trg_lang": "is", "train": [["c.en", 1, 2], ["c.is", 1, 2]]}
+    c16, c32 = (pipeline.Cache(str(tmp_path), dict(base, precision=p)) for p in ("fp16", "fp32"))
+    assert c16.key("giza") == c32.key("giza") and c16.key("eflomal_gdfa") == c32.key("eflomal_gdfa")
+    assert c16.key("labse8") != c32.key("labse8")
+    other = pipeline.Cache(str(tmp_path), dict(base, precision="fp16", train=[["d.en", 1, 2], ["c.is", 1, 2]]))
+    assert other.key("giza") != c16.key("giza") and other.key("labse8") == c16.key("labse8")

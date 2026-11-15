@@ -34,9 +34,11 @@ class Cache:
 
     def key(self, name):
         spec = MEMBERS[name]
-        # the training files of statistical members are identified by path, size and mtime (they can be huge)
-        base = {k: v for k, v in self.base.items() if k != "train"}
-        return hashlib.sha1(json.dumps([base, name, spec, self.base.get("train") if spec["kind"] == "stat" else None],
+        # statistical members: the training files, identified by path, size and mtime (they can be huge);
+        # encoder members: the precision (a statistical member is not recomputed when only --fp32 or the device changes)
+        own = "train" if spec["kind"] == "stat" else "precision"
+        base = {k: v for k, v in self.base.items() if k not in ("train", "precision")}
+        return hashlib.sha1(json.dumps([base, name, spec, self.base.get(own)],
                                        sort_keys=True, default=str).encode()).hexdigest()
 
     def get(self, name):
@@ -71,9 +73,13 @@ def run(recipe, src, trg, train_src=None, train_trg=None, src_lang="en", trg_lan
         raise SystemExit(f"--src has {len(src)} lines but --trg has {len(trg)}")
     names = list(R["members"]) + (list(R["grow"]["members"]) if grow else [])
     work = work or tempfile.mkdtemp(prefix=f"combalign_{recipe}_")
-    base = {"src": hash_of(src), "trg": hash_of(trg), "src_lang": src_lang, "trg_lang": trg_lang,
-            # encoder precision: fp16 on GPU by default; CPU is always fp32 (links differ by a handful at most)
-            "precision": "fp32" if fp16 is False or (device or "").startswith("cpu") else "auto"}
+    base = {"src": hash_of(src), "trg": hash_of(trg), "src_lang": src_lang, "trg_lang": trg_lang}
+    if any(MEMBERS[n]["kind"] == "embed" for n in names):
+        # encoder precision: fp16 on GPU by default; CPU is always fp32 (links differ by a handful at most)
+        if device is None:
+            import torch
+            device = "cuda" if torch.cuda.is_available() else "cpu"
+        base["precision"] = "fp16" if device.startswith("cuda") and fp16 is not False else "fp32"
     stat_names = [n for n in names if MEMBERS[n]["kind"] == "stat"]
     if stat_names:
         base["train"] = [[p, os.path.getsize(p), os.stat(p).st_mtime_ns] for p in (train_src, train_trg)]

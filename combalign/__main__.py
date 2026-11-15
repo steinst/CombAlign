@@ -1,10 +1,11 @@
 # -*- coding: utf-8 -*-
-"""CombAlign command line. Sentence files: one tokenised sentence per line (optionally "<id>\\t<sentence>").
-Alignments: Pharaoh format, one line per sentence pair (i-j = source word i ↔ target word j, 0-based).
+"""CombAlign command line. Sentence files: one sentence per line (optionally "<id>\\t<sentence>"), tokenised (tokens
+separated by spaces) or, with --tokenize, raw text. Alignments: Pharaoh format, one line per sentence pair (i-j = source
+word i ↔ target word j, 0-based); --output-format offsets gives character spans instead, jsonl everything.
 
   python -m combalign align --recipe emb|fast|full [--grow] --src x.en --trg x.is [--train-src c.en --train-trg c.is] \\
                             [--src-lang en --trg-lang is] [--device cuda] [--fp32] [--work DIR] [--scores s.txt] \\
-                            [--min-votes N] -o out.pharaoh
+                            [--min-votes N] [--tokenize] [--output-format pharaoh|offsets|jsonl] -o out.pharaoh
   python -m combalign stat  --aligner eflomal --src x.en --trg x.is [--train-src c.en --train-trg c.is] \\
                             [--sym intersect|union|gd|gdf|gdfa] -o eflomal.pharaoh
   python -m combalign embed --model labse8 [--method argmax|itermax|match|softmax] [--level word|bpe] \\
@@ -14,6 +15,8 @@ Alignments: Pharaoh format, one line per sentence pair (i-j = source word i ↔ 
                             -o grow.pharaoh p1.pharaoh p2.pharaoh ...
   python -m combalign filter --scores x.scores --min-votes 4 [--no-grown] -o x.min4.pharaoh
   python -m combalign eval  --gold gold.pharaoh pred1.pharaoh [pred2.pharaoh ...]
+  python -m combalign tokenize --lang is raw.is -o tok.is        (e.g. to prepare a training corpus for fast/full)
+stat and embed also take --tokenize and --output-format.
 """
 import argparse
 import sys
@@ -27,6 +30,40 @@ def _write_lines(path, lines):
             f.write(l + "\n")
 
 
+def _add_text_options(p, langs=False):
+    if langs:
+        p.add_argument("--src-lang", default="en"); p.add_argument("--trg-lang", default="is")
+    p.add_argument("--tokenize", action="store_true",
+                   help="--src/--trg are raw text: tokenise them (English: Moses, Icelandic: Miðeind tokenizer, other "
+                        "languages: Moses); character offsets are kept for --output-format offsets|jsonl. "
+                        "Training corpora (--train-src/--train-trg) are not tokenised: see `combalign tokenize`")
+    p.add_argument("--output-format", default="pharaoh", choices=("pharaoh", "offsets", "jsonl"),
+                   help='pharaoh: "i-j" token indices | offsets: "s:e-s:e" character spans in the source and target line | '
+                        "jsonl: one object per pair with texts, tokens, character spans and links (with vote counts)")
+
+
+class _Side:
+    """One input file: ids (or None), the sentence texts, the tokens and their character spans in the text."""
+
+    def __init__(self, path, lang, tokenize):
+        from . import tokenization as tk
+        self.ids, self.texts = core.read_raw(path)
+        self.spans = [tk.tokenize(t, lang) if tokenize else tk.whitespace_spans(t) for t in self.texts]
+        self.tokens = [tk.tokens(t, s) for t, s in zip(self.texts, self.spans)]
+
+
+def _write_alignments(path, fmt, alignments, src, trg, info=None):
+    """info: per sentence the keyword arguments of tokenization.to_jsonl about votes and grown links (jsonl only)."""
+    if fmt == "pharaoh":
+        return core.write_pharaoh(path, alignments)
+    from . import tokenization as tk
+    if fmt == "offsets":
+        return _write_lines(path, [tk.to_offsets(al, s, t) for al, s, t in zip(alignments, src.spans, trg.spans)])
+    _write_lines(path, [tk.to_jsonl(al, src.texts[k], trg.texts[k], src.spans[k], trg.spans[k],
+                                    src.ids[k] if src.ids[k] is not None else trg.ids[k], **(info[k] if info else {}))
+                        for k, al in enumerate(alignments)])
+
+
 def main(argv=None):
     ap = argparse.ArgumentParser(prog="combalign", description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     sp = ap.add_subparsers(dest="cmd", required=True)
@@ -37,7 +74,7 @@ def main(argv=None):
     al.add_argument("--grow", action="store_true", help="grow the vote into multiword (1-n, n-m) blocks")
     al.add_argument("--src", required=True); al.add_argument("--trg", required=True)
     al.add_argument("--train-src"); al.add_argument("--train-trg", help="parallel corpus for fast/full (not needed for emb)")
-    al.add_argument("--src-lang", default="en"); al.add_argument("--trg-lang", default="is")
+    _add_text_options(al, langs=True)
     al.add_argument("--device"); al.add_argument("--batch-size", type=int, default=64)
     al.add_argument("--fp32", action="store_true", help="no half precision on GPU (reproduces the paper numbers exactly)")
     al.add_argument("--work", help="working directory: member outputs are cached here, so an interrupted run resumes "
@@ -53,6 +90,7 @@ def main(argv=None):
     s.add_argument("--n-train", type=int, help="use only the first N training pairs")
     s.add_argument("--sym", default="intersect", choices=("intersect", "union", "gd", "gdf", "gdfa", "fwd", "rev"))
     s.add_argument("--work", help="working directory (default: a temporary one)")
+    _add_text_options(s, langs=True)
     s.add_argument("-o", "--output", required=True)
 
     e = sp.add_parser("embed", help="SimAlign-style aligner from contextual embeddings")
@@ -61,7 +99,7 @@ def main(argv=None):
     e.add_argument("--method", default="argmax", choices=("argmax", "itermax", "match", "softmax"))
     e.add_argument("--level", default="word", choices=("word", "bpe"))
     e.add_argument("--kappa", type=float, default=0.0, help="distortion correction (0 = off)")
-    e.add_argument("--src-lang", default="en"); e.add_argument("--trg-lang", default="is")
+    _add_text_options(e, langs=True)
     e.add_argument("--device")
     e.add_argument("--batch-size", type=int, default=64)
     e.add_argument("--fp32", action="store_true", help="no half precision on GPU (default: fp16 on GPU)")
@@ -95,33 +133,43 @@ def main(argv=None):
     ev.add_argument("--gold", required=True)
     ev.add_argument("predictions", nargs="+")
 
+    tz = sp.add_parser("tokenize", help="tokenise raw text as --tokenize does (one sentence per line; ids are kept)")
+    tz.add_argument("--lang", required=True, help="en: Moses | is: Miðeind tokenizer | other languages: Moses")
+    tz.add_argument("input")
+    tz.add_argument("-o", "--output", required=True)
+
     a = ap.parse_args(argv)
+    if a.cmd in ("align", "stat", "embed"):
+        S, T = _Side(a.src, a.src_lang, a.tokenize), _Side(a.trg, a.trg_lang, a.tokenize)
+        src, trg = S.tokens, T.tokens
     if a.cmd == "align":
         from . import pipeline
-        src, trg = core.read_lines(a.src), core.read_lines(a.trg)
         r = pipeline.run(a.recipe, src, trg, a.train_src, a.train_trg, a.src_lang, a.trg_lang, a.grow, a.device,
                          False if a.fp32 else None, a.work, a.batch_size, a.min_votes)
-        core.write_pharaoh(a.output, r["alignments"])
+        info = []                                   # per sentence: votes of the voted links, and the links grow added
+        for k, al in enumerate(r["alignments"]):
+            grown = r["grown"][k] if r["grown"] else set()
+            info.append(dict(votes={e: r["counts"][k][e] for e in al - grown}, n=r["n"], grown=grown,
+                             grown_counts=r["grown_counts"][k] if r["grown"] else None, m=r["m"]))
+        _write_alignments(a.output, a.output_format, r["alignments"], S, T, info)
         if a.scores:
-            lines = []
-            for k, al in enumerate(r["alignments"]):
-                grown = r["grown"][k] if r["grown"] else set()
-                voted = {e: r["counts"][k][e] for e in al - grown}
-                lines.append(core.to_scores(voted, r["n"], grown, r["grown_counts"][k] if r["grown"] else None, r["m"]))
-            _write_lines(a.scores, lines)
+            _write_lines(a.scores, [core.to_scores(**d) for d in info])
     elif a.cmd == "stat":
         from . import external
-        src, trg = core.read_lines(a.src), core.read_lines(a.trg)
         fwd, rev = external.ALIGNERS[a.aligner](src, trg, a.train_src, a.train_trg, a.n_train, a.work)
         out = fwd if a.sym == "fwd" else rev if a.sym == "rev" else [core.symmetrize(f, r, a.sym) for f, r in zip(fwd, rev)]
-        core.write_pharaoh(a.output, out)
+        _write_alignments(a.output, a.output_format, out, S, T)
     elif a.cmd == "embed":
         from . import simalign as sa
-        src, trg = core.read_lines(a.src), core.read_lines(a.trg)
         E = sa.Embedder(a.model, device=a.device, layer=a.layer, fp16=False if a.fp32 else None)
         out = sa.align_corpus(src, trg, a.model, a.method, a.level, a.kappa, embedder=E, src_lang=a.src_lang,
                               trg_lang=a.trg_lang, batch_size=a.batch_size)
-        core.write_pharaoh(a.output, out)
+        _write_alignments(a.output, a.output_format, out, S, T)
+    elif a.cmd == "tokenize":
+        from . import tokenization as tk
+        ids, texts = core.read_raw(a.input)
+        _write_lines(a.output, [("" if i is None else i + "\t") + " ".join(tk.tokens(t, tk.tokenize(t, a.lang)))
+                                for i, t in zip(ids, texts)])
     elif a.cmd == "vote":
         counts = core.vote([core.read_pharaoh(p) for p in a.alignments], a.k, return_counts=True)
         n = len(a.alignments)

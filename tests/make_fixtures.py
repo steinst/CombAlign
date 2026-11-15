@@ -1,8 +1,7 @@
 # -*- coding: utf-8 -*-
 """Freeze the regression fixtures: copies of the stored dev/test predictions of the `full` members and of the
-grow members (the 7 members + 5 phrase-capable ones), plus `grow_full` / `grow_full_fa`: snapshots of what the
-2.0 core produces (seed = vote 4/7, candidates = vote 3/5 of the grow members, final-and off / on). The original
-experiment's grow files are NOT used: they cannot be reproduced from these public members (see TOOL_STATUS.md).
+grow members (the 7 members + 5 phrase-capable ones), plus `grow_full` / `grow_full_fa`: the output of
+core.grow (seed = vote 4/7, candidates = vote 3/5 of the grow members, final-and off / on).
 Run once (the fixtures are committed):
     python tests/make_fixtures.py PREDICTIONS_DIR
 Fixtures are predictions only (ParIce-trained statistical aligners, untrained encoders); the gold set is not in the repo."""

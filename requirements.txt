@@ -2,6 +2,6 @@ numpy
 scipy
 torch
 transformers
-sentencepiece
 eflomal
-awesome-align
+sacremoses
+tokenizer>=3.4

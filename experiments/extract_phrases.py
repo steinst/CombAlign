@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """Phrase-pair and word-pair counts from a whole training corpus (MWEs, bilingual dictionary induction).
   align    eflomal on all of data/train/<corpus>.{en,is} (lowercased) → work/phr/<corpus>.{fwd,rev}
-  count    gdfa per line (best single aligner for MWE blocks on the gold set: 44 % exact) → connected blocks;
+  count    gdfa per line (eflomal gdfa: 39 % of the gold set's MWE blocks exact, see results/RESULTS.md) → connected blocks;
            keep blocks contiguous on both sides, ≤ 4 words per side, at least one alphabetic word per side;
            counts of (en, is) block pairs + marginal counts of every en/is n-gram (n ≤ 4) for Dice
            → work/phr/<corpus>.pairs.tsv (en, is, count, en_count, is_count, dice), count ≥ 3

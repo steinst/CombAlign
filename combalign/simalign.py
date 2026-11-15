@@ -7,6 +7,8 @@ Methods: ArgMax (mutual argmax), IterMax (ArgMax repeated on the not-yet-aligned
 simalign iter_max, max_count 2, α 0.9), Match (maximum-weight bipartite matching, scipy). Distortion correction: similarity minus
 κ · (i/m − j/n)² before extraction (κ = 0 off; the paper's best was 0.09).
 """
+import re
+
 import numpy as np
 
 # name → (HF id, layer). Layers: SimAlign 8 for base models; LaBSE 6 (AccAlign's best vanilla layer); NLLB encoder
@@ -19,14 +21,31 @@ MODELS = {
     "nllb": ("facebook/nllb-200-distilled-600M", 12), "nllb8": ("facebook/nllb-200-distilled-600M", 8),
     "e5": ("intfloat/multilingual-e5-base", 8),
 }
-NLLB_LANG = {"en": "eng_Latn", "is": "isl_Latn"}
+# ISO 639-1 → NLLB-200 (FLORES-200) language code; any other language: pass the NLLB code itself (e.g. --trg-lang fao_Latn)
+NLLB_LANG = {
+    "en": "eng_Latn", "is": "isl_Latn", "da": "dan_Latn", "sv": "swe_Latn", "nb": "nob_Latn", "no": "nob_Latn",
+    "nn": "nno_Latn", "fo": "fao_Latn", "fi": "fin_Latn", "et": "est_Latn", "de": "deu_Latn", "nl": "nld_Latn",
+    "fr": "fra_Latn", "es": "spa_Latn", "pt": "por_Latn", "it": "ita_Latn", "ca": "cat_Latn", "ro": "ron_Latn",
+    "pl": "pol_Latn", "cs": "ces_Latn", "sk": "slk_Latn", "sl": "slv_Latn", "hr": "hrv_Latn", "hu": "hun_Latn",
+    "lt": "lit_Latn", "lv": "lvs_Latn", "ga": "gle_Latn", "cy": "cym_Latn", "el": "ell_Grek", "bg": "bul_Cyrl",
+    "ru": "rus_Cyrl", "uk": "ukr_Cyrl", "tr": "tur_Latn",
+}
+
+
+def nllb_code(lang):
+    if lang in NLLB_LANG:
+        return NLLB_LANG[lang]
+    if re.fullmatch(r"[a-z]{3}_[A-Z][a-z]{3}", lang):
+        return lang
+    raise SystemExit(f"no NLLB language code known for '{lang}': give the NLLB-200 code itself, e.g. deu_Latn "
+                     f"(known short codes: {' '.join(sorted(NLLB_LANG))})")
 
 
 class Embedder:
     def __init__(self, model="xlmr", device=None, layer=None, fp16=None):
         import torch
         from transformers import AutoModel, AutoTokenizer
-        # a MODELS key, or any Hugging Face id / local directory (e.g. an awesome-align fine-tuned model; layer default 8)
+        # a MODELS key, or any Hugging Face id / local directory (layer default 8)
         hf, default_layer = MODELS.get(model, (model, 8))
         self.torch, self.layer = torch, layer or default_layer
         self.dev = device or ("cuda" if torch.cuda.is_available() else "cpu")
@@ -43,7 +62,7 @@ class Embedder:
         """words: list of str → (word vectors [n×d] normalised, subword vectors normalised, subword→word index,
         raw subword vectors (for awesome-align's softmax extraction))."""
         if self.nllb:
-            self.tok.src_lang = NLLB_LANG[lang]
+            self.tok.src_lang = nllb_code(lang)
         enc = self.tok(words, is_split_into_words=True, return_tensors="pt", truncation=True, max_length=512)
         with self.torch.no_grad():
             h = self.m(input_ids=enc["input_ids"].to(self.dev), attention_mask=enc["attention_mask"].to(self.dev),
@@ -80,7 +99,7 @@ class Embedder:
         torch = self.torch
         layers = tuple(dict.fromkeys(layers)) if layers else (self.layer,)
         if self.nllb:
-            self.tok.src_lang = NLLB_LANG[lang]
+            self.tok.src_lang = nllb_code(lang)
         n = len(sentences)
         order = sorted(range(n), key=lambda i: sum(len(w) + 1 for w in sentences[i]))
         out = {L: [None] * n for L in layers}
@@ -160,6 +179,8 @@ METHODS = {"argmax": argmax, "itermax": itermax, "match": match}
 def align_pair(emb_s, emb_t, method="argmax", level="word", kappa=0.0):
     ws, ss, so, rs = emb_s
     wt, st, to, rt = emb_t
+    if not len(ws) or not len(wt) or not len(ss) or not len(st):      # an empty sentence has no links
+        return set()
     if method == "softmax":                      # always subword level on raw vectors, as awesome-align
         sub = softmax_thr(rs @ rt.T)
         return {(so[i], to[j]) for i, j in sub}

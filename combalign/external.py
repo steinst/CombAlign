@@ -34,6 +34,13 @@ def _corpus(train_src, train_trg, src, trg, n_train):
     return S, T
 
 
+def _last(als, src, trg):
+    """The alignments of the sentences to align (the last len(src) lines), without links to the "." that stands in
+    for an empty line."""
+    als = als[len(als) - len(src):]
+    return [{(i, j) for i, j in al if i < len(s) and j < len(t)} for al, s, t in zip(als, src, trg)]
+
+
 def fast_align(src, trg, train_src=None, train_trg=None, n_train=None, work=None):
     S, T = _corpus(train_src, train_trg, src, trg, n_train)
     work = work or tempfile.mkdtemp(prefix="fa_")
@@ -45,7 +52,7 @@ def fast_align(src, trg, train_src=None, train_trg=None, n_train=None, work=None
     out = {}
     for d, flag in (("fwd", []), ("rev", ["-r"])):
         r = subprocess.run([FA, "-i", p, "-d", "-o", "-v"] + flag, capture_output=True, text=True, check=True)
-        out[d] = [core.parse_pharaoh(l)[0] for l in r.stdout.splitlines()][-len(src):]
+        out[d] = _last([core.parse_pharaoh(l)[0] for l in r.stdout.splitlines()], src, trg)
     return out["fwd"], out["rev"]
 
 
@@ -57,8 +64,8 @@ def eflomal(src, trg, train_src=None, train_trg=None, n_train=None, work=None):
     a = Aligner()
     a.align([s or "." for s in S], [t or "." for t in T], links_filename_fwd=f"{work}/fwd",
             links_filename_rev=f"{work}/rev", quiet=True)
-    fwd = [core.parse_pharaoh(l)[0] for l in open(f"{work}/fwd")][-len(src):]
-    rev = [core.parse_pharaoh(l)[0] for l in open(f"{work}/rev")][-len(src):]
+    fwd = _last([core.parse_pharaoh(l)[0] for l in open(f"{work}/fwd")], src, trg)
+    rev = _last([core.parse_pharaoh(l)[0] for l in open(f"{work}/rev")], src, trg)
     return fwd, rev
 
 
@@ -102,8 +109,8 @@ def giza(src, trg, train_src=None, train_trg=None, n_train=None, work=None):
     # GIZA++ -S a -T b: .A3.final line 3 = a words annotated with b positions; each b word has ≤ 1 a word.
     en_is = _giza_dir(work, S, T, "en", "is", "en_is")   # (en_i, is_j)
     is_en = _giza_dir(work, S, T, "is", "en", "is_en")   # (is_i, en_j)
-    fwd = [set(al) for al in en_is][-len(src):]
-    rev = [{(j, i) for (i, j) in al} for al in is_en][-len(src):]
+    fwd = _last(en_is, src, trg)
+    rev = _last([{(j, i) for (i, j) in al} for al in is_en], src, trg)
     return fwd, rev
 
 
