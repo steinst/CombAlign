@@ -6,7 +6,9 @@ For each prediction file (results/predictions/{split}.*.pharaoh):
   block exact: predicted links restricted to the block's words reproduce the block's word sets on both sides
               (every word of the block linked, no link leaving the block) — the property phrase extraction needs
   block covered: all words of the block linked to something inside the block (looser)
-    python experiments/mwe_eval.py [split=test] → results/mwe_{split}.tsv + results/mwe_examples_{split}.txt"""
+    python experiments/mwe_eval.py [split=test] → results/mwe_{split}.tsv + results/mwe_examples_{split}.txt
+    python experiments/mwe_eval.py recipes [split=test]
+        prints the recipe table of RESULTS.md (votes and --grow, F1, AER, exact MWE blocks) from tests/fixtures"""
 import glob
 import os
 import sys
@@ -88,5 +90,30 @@ def main(split="test"):
     print(open(f"{ROOT}/results/mwe_examples_{split}.txt").readline())
 
 
+def recipe_table(split="test"):
+    from combalign.recipes import RECIPES
+    src, trg, gold = core.read_gold(f"{ROOT}/data/gold/{split}")
+    mwe = [(k, bs, bt) for k, (S, P) in enumerate(gold) for bs, bt in components(S | P) if len(bs) > 1 or len(bt) > 1]
+    fx = lambda n: core.read_pharaoh(f"{ROOT}/tests/fixtures/{split}.{n}.pharaoh")
+    systems = {"LaBSE ArgMax": fx("labse8"), "eflomal gdfa": fx("eflomal_gdfa")}
+    for r, R in RECIPES.items():
+        members, G = [fx(m) for m in R["members"]], R["grow"]
+        systems[f"{r} ({R['k']}-of-{len(members)} vote)"] = core.vote(members, R["k"])
+        seed, cand = core.vote(members, G["seed_k"]), core.vote([fx(m) for m in G["members"]], G["cand_k"])
+        systems[f"{r} --grow"] = [core.grow(a, c, False) for a, c in zip(seed, cand)]
+    print(f"{split}: {len(mwe)} MWE blocks\n| system | F1 | AER | MWE blocks exact |\n|---|---|---|---|")
+    for name, pred in systems.items():
+        exact = 0
+        for k, bs, bt in mwe:
+            inside = {(i, j) for i, j in pred[k] if i in bs and j in bt}
+            leaving = any((i in bs) != (j in bt) for i, j in pred[k])
+            exact += {i for i, _ in inside} == set(bs) and {j for _, j in inside} == set(bt) and not leaving
+        e = core.evaluate(pred, gold)
+        print(f"| {name} | {e['F1']:.3f} | {e['AER']:.3f} | {100 * exact / len(mwe):.0f} % |")
+
+
 if __name__ == "__main__":
-    main(*sys.argv[1:])
+    if sys.argv[1:2] == ["recipes"]:
+        recipe_table(*sys.argv[2:])
+    else:
+        main(*sys.argv[1:])

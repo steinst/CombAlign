@@ -54,8 +54,8 @@ extraction and dictionary induction need this property (`experiments/mwe_eval.py
 | `full` (3-of-7 vote) | .960 | .043 | 14 % |
 | **`full --grow`** | .942 | .063 | **44 %** |
 
-These rows are computed from the predictions in `tests/fixtures`; eflomal is not seeded, so a new run moves them
-slightly (`full --grow`: F1 .942–.943). Use the vote when you need precise word links. Use `full --grow` when
+These rows are computed from the predictions in `tests/fixtures` (`python experiments/mwe_eval.py recipes test`);
+eflomal is not seeded, so a new run moves them slightly (`full --grow`: F1 .942–.943). Use the vote when you need precise word links. Use `full --grow` when
 you need phrases or dictionary entries: it trades .018 F1 for three times as many exact multiword blocks. For `emb`
 and `fast`, `--grow` raises both F1 and the share of exact blocks, but the share stays low.
 

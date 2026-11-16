@@ -192,6 +192,7 @@ python experiments/ensemble_ablation.py align giza 100000,500000,1000000
 python experiments/ensemble_ablation.py combine                        # → results/ensemble_{dev,test}.tsv
 python experiments/grow_ensemble.py
 python experiments/mwe_eval.py test                                    # → results/mwe_test.tsv
+python experiments/mwe_eval.py recipes test                            # multiword table of the recipes in RESULTS.md
 python experiments/single_table.py
 python experiments/calibration.py --write                              # confidence table in RESULTS.md
 python experiments/tokenization_check.py                               # tokenisation agreement with the gold set
