@@ -78,7 +78,8 @@ def _giza_dir(work, S, T, a, b, tag):
     subprocess.run([f"{GIZA}/GIZA++", "-S", f"{fa}.vcb", "-T", f"{fb}.vcb", "-C", f"{work}/{a}_{b}.snt",
                     "-CoocurrenceFile", f"{work}/{a}_{b}.cooc", "-o", tag, "-outputpath", work,
                     "-sourcevocabularyclasses", f"{fa}.vcb.classes", "-targetvocabularyclasses", f"{fb}.vcb.classes"],
-                   capture_output=True, check=True)
+                   capture_output=True, check=True,
+                   env={**os.environ, "USER": os.environ.get("USER", "user")})   # GIZA++ crashes when USER is unset
     # .A3.final: 3 lines per pair; line 3 = source words with "({ target positions })", 1-based, NULL first
     import glob
     import re
